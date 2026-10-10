@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ page_title }}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f3f6fb;
+        margin: 0;
+        padding: 24px;
+        color: #1f2937;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      .subtitle {
+        color: #4b5563;
+        margin-bottom: 24px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 3px 12px rgba(15, 23, 42, 0.08);
+      }
+      th, td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+      }
+      th {
+        background: #e0e7ff;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .up {
+        color: #15803d;
+        font-weight: bold;
+      }
+      .down {
+        color: #b91c1c;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>{{ page_title }}</h1>
+      <div class="subtitle">Updated: {{ updated_at }}</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Company</th>
+            <th>Price</th>
+            <th>Daily Change</th>
+            <th>Change %</th>
+            <th>Currency</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in market_data %}
+            <tr>
+              <td>{{ item.symbol }}</td>
+              <td>{{ item.company }}</td>
+              <td>{{ item.price }}</td>
+              {% if item.change is not None and item.change >= 0 %}
+                <td class="up">+{{ item.change|floatformat:2 }}</td>
+              {% elif item.change is not None %}
+                <td class="down">{{ item.change|floatformat:2 }}</td>
+              {% else %}
+                <td>N/A</td>
+              {% endif %}
+
+              {% if item.change_pct is not None and item.change_pct >= 0 %}
+                <td class="up">+{{ item.change_pct|floatformat:2 }}%</td>
+              {% elif item.change_pct is not None %}
+                <td class="down">{{ item.change_pct|floatformat:2 }}%</td>
+              {% else %}
+                <td>N/A</td>
+              {% endif %}
+              <td>{{ item.currency }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6">No stock data available right now.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

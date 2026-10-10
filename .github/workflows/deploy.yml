@@ -1,0 +1,73 @@
+name: Build and Deploy Stock Dashboard
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build
+
+      - name: Build wheel
+        run: python -m build --wheel
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stock-dashboard-wheel
+          path: dist/*.whl
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stock-dashboard-wheel
+          path: dist
+
+      - name: Copy wheel to Azure VM
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          source: dist/*.whl
+          target: /tmp/
+
+      - name: Copy installer script to Azure VM
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          source: scripts/install_stock_dashboard.sh
+          target: /tmp/
+
+      - name: Install and start the app on VM
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            chmod +x /tmp/install_stock_dashboard.sh
+            WHEEL_FILE=$(ls -1 /tmp/*.whl | head -n 1)
+            sudo bash /tmp/install_stock_dashboard.sh "$WHEEL_FILE"

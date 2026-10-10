@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stock-dashboard"
+version = "0.1.0"
+description = "Simple stock dashboard built with Django"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "Django>=5.0,<5.1",
+  "gunicorn>=22.0,<23.0",
+  "yfinance>=0.2.49",
+  "python-dotenv>=1.0.1",
+]
+
+[tool.setuptools]
+packages = ["stock_dashboard", "stock_project"]

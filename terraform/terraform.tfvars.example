@@ -1,0 +1,11 @@
+location            = "eastus"
+resource_group_name = "rg-stock-dashboard"
+vm_size             = "Standard_B2s"
+admin_username     = "azureuser"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
+
+tags = {
+  environment = "dev"
+  project     = "stock-dashboard"
+  owner       = "personal"
+}
