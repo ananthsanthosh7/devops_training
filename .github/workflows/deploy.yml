@@ -37,36 +37,44 @@ jobs:
     environment:
       name: production
     steps:
+      - name: Validate VM deployment secrets
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.GCP_VM_HOST }}" ] || [ -z "${{ secrets.GCP_VM_USER }}" ] || [ -z "${{ secrets.GCP_VM_SSH_KEY }}" ]; then
+            echo "Missing required GitHub secrets: GCP_VM_HOST, GCP_VM_USER, or GCP_VM_SSH_KEY"
+            exit 1
+          fi
+
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
           name: stock-dashboard-wheel
           path: dist
 
-      - name: Copy wheel to Azure VM
+      - name: Copy wheel to Linux VM
         uses: appleboy/scp-action@v1.0.0
         with:
-          host: ${{ secrets.AZURE_VM_HOST }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_VM_SSH_KEY }}
           source: dist/*.whl
           target: /tmp/
 
-      - name: Copy installer script to Azure VM
+      - name: Copy installer script to Linux VM
         uses: appleboy/scp-action@v1.0.0
         with:
-          host: ${{ secrets.AZURE_VM_HOST }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_VM_SSH_KEY }}
           source: scripts/install_stock_dashboard.sh
           target: /tmp/
 
       - name: Install and start the app on VM
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.AZURE_VM_HOST }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_VM_SSH_KEY }}
           script: |
             chmod +x /tmp/install_stock_dashboard.sh
             WHEEL_FILE=$(ls -1 /tmp/*.whl | head -n 1)

@@ -52,12 +52,14 @@ python3 -m build --wheel
 
 The wheel file will be generated in `dist/`.
 
-## Azure infrastructure
+## Cloud infrastructure
 
-Use Terraform in the `terraform/` directory.
+For this project, you can deploy to either Azure or GCP. The GCP example is ready in the `gcp/` directory.
 
 ```bash
-cd terraform
+cd gcp
+cp terraform.tfvars.example terraform.tfvars
+# edit terraform.tfvars with your GCP project values
 terraform init
 terraform plan
 terraform apply
@@ -72,7 +74,7 @@ The workflow in `.github/workflows/deploy.yml` does the following:
 1. Builds the wheel
 2. Uploads it as an artifact
 3. Uses an approval gate via GitHub Environment
-4. Copies the wheel to the Azure VM
+4. Copies the wheel to the Linux VM on GCP or Azure
 5. Installs and starts the app via a shell script
 
 ## Important notes
@@ -83,22 +85,21 @@ The workflow in `.github/workflows/deploy.yml` does the following:
 
 ## Resources required
 
-- Azure subscription
-- Resource group
-- Linux VM (e.g., Ubuntu 22.04)
-- Public IP
-- VNet + subnet + NIC
-- NSG rules for 22 and 80/443
+- GCP project
+- VPC + subnet
+- Linux VM (e.g., Ubuntu 22.04) on Compute Engine
+- External IP
+- Firewall rules for 22, 80, and 443
 - GitHub repository
 - GitHub Actions
-- Optional: Azure Key Vault, storage, or AD/managed identity
+- Optional: Cloud IAM, Secret Manager, monitoring, or DNS
 
 ## TFE / Terraform Enterprise
 
-TFE is optional. For a small personal Azure deployment, you can keep it simple:
+TFE is optional. For a small personal cloud deployment, you can keep it simple:
 
 - use local Terraform in your repo
-- run `terraform apply` from GitHub Actions or your laptop
+- run `terraform apply` from your laptop
 - use GitHub environment approvals for release control
 
 TFE is useful only when you want centralized remote state, policy enforcement, and team-based governance.
